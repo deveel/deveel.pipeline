@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Deveel</RootNamespace>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <Authors>Antonello Provenzano</Authors>
+  </PropertyGroup>
+</Project>

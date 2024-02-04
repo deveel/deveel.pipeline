@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deveel.Pipelines", "src\Deveel.Pipelines\Deveel.Pipelines.csproj", "{218467E4-0DE1-4AA9-946F-476020046D73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deveel.Pipelines.XUnit", "test\Deveel.Pipelines.XUnit\Deveel.Pipelines.XUnit.csproj", "{96A87C21-65F0-499A-91BD-F37466694820}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{218467E4-0DE1-4AA9-946F-476020046D73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{218467E4-0DE1-4AA9-946F-476020046D73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{218467E4-0DE1-4AA9-946F-476020046D73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{218467E4-0DE1-4AA9-946F-476020046D73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96A87C21-65F0-499A-91BD-F37466694820}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A87C21-65F0-499A-91BD-F37466694820}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A87C21-65F0-499A-91BD-F37466694820}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A87C21-65F0-499A-91BD-F37466694820}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7761C400-BDFA-45CE-9FD0-232680FB6340}
+	EndGlobalSection
+EndGlobal

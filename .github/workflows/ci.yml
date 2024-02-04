@@ -1,0 +1,44 @@
+name: Pipelines CI
+
+permissions:
+  packages: write
+  contents: read
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:    
+  build:
+    strategy:
+      matrix:
+        dotnet-version: [6.0.x, 7.0.x, 8.0.x]
+        
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+  
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Install dependencies
+        run: dotnet restore -c Release
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Test
+        run: dotnet test -c Release --no-build --verbosity normal
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pack Libraries
+        run: dotnet pack -c Release --no-build --no-restore --include-symbols --include-source -o ./nupkgs
+
+      - name: Publish to GitHub Packages
+        run: dotnet nuget push ./nupkgs/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+        
