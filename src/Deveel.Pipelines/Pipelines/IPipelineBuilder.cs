@@ -16,7 +16,7 @@
 		/// <exception cref="ArgumentNullException">
 		/// Thrown when the given <paramref name="step"/> is <c>null</c>.
 		/// </exception>
-		void AddStep(PipelineStep step);
+		void AddStep(IPipelineStep step);
 
 		/// <summary>
 		/// Builds the pipeline for the given context.
