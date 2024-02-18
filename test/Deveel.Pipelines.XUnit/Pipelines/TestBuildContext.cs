@@ -1,9 +1,7 @@
 ﻿namespace Deveel.Pipelines {
-	public sealed class TestBuildContext : IPipelineBuildContext {
-		public IServiceProvider Services { get; }
-
-		public TestBuildContext(IServiceProvider services) {
-			Services = services;
+	public sealed class TestBuildContext : PipelineBuildContext {
+		public TestBuildContext(IServiceProvider services)
+			: base(services) {
 		}
 	}
 }

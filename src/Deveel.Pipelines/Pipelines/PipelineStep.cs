@@ -43,105 +43,26 @@ namespace Deveel.Pipelines {
 		/// </remarks>
 		public object[]? Arguments { get; }
 
-		public ExecutionCallback<TContext> CreateCallback<TContext>(IPipelineBuildContext buildContext, ExecutionCallback<TContext>? next) where TContext : IExecutionContext {
-			var handler = CreateHandler<TContext>(buildContext);
-
-			if (handler == null)
-				throw new InvalidOperationException($"The handler type {HandlerType} could not be instantiated.");
-
-			if (handler is IExecutionHandler<TContext> asyncHandler) {
-				return new ExecutionCallback<TContext>((ctx, n) => {
-					return asyncHandler.HandleAsync(ctx, n);
-				}, next);
-			}
-
-			var handleMethods = HandlerType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-				.Where(x => x.Name == "Handle" || x.Name == "HandleAsync")
-				.ToList();
-
-			if (handleMethods.Count == 0)
-				throw new InvalidOperationException($"The handler type {HandlerType} does not have a method to handle the execution of the pipeline.");
-
-			if (handleMethods.Count > 1)
-				throw new InvalidOperationException($"The handler type {HandlerType} has more than one method to handle the execution of the pipeline.");
-
-			var handleMethod = handleMethods[0];
-
-			if (handleMethod.ReturnType != typeof(void) && handleMethod.ReturnType != typeof(Task))
-				throw new InvalidOperationException($"The handler type {HandlerType} has a method to handle the execution of the pipeline that does not return void or Task.");
-
-			var parameters = handleMethod.GetParameters();
-
-			if (parameters.Length == 0)
-				throw new InvalidOperationException($"The handler type {HandlerType} has a method to handle the execution of the pipeline that does not have any parameter.");
-
-			return new ExecutionCallback<TContext>((context, n) => {
-				var args = new List<object?>();
-
-				if (Arguments != null) {
-					args.AddRange(Arguments);
-				}
-
-				for (var i = 0; i < parameters.Length; i++) {
-					var param = parameters[i];
-					if (param.ParameterType == typeof(TContext)) {
-						args.Insert(i, context);
-					} else if (param.ParameterType == typeof(ExecutionDelegate<TContext>)) {
-						args.Insert(i, n);
-					}
-
-					// TODO: should we use the service provider?
-					//} else {
-					//	var service = buildContext.Services.GetService(param.ParameterType);
-					//	if (service == null)
-					//		throw new InvalidOperationException($"The handler type {HandlerType} requires a service of type {param.ParameterType} that is not available in the context.");
-
-					//	args.Add(service);
-					//}
-				}
-
-				if (args.Count != parameters.Length)
-					throw new InvalidOperationException($"The handler type {HandlerType} has a method to handle the execution of the pipeline that does not have the right number of parameters.");
-
-				var result = handleMethod.Invoke(handler, args.ToArray());
-				if (result is Task task) {
-					return task;
-				}
-
-				return Task.CompletedTask;
-			}, next);
-		}
-
-		private object? CreateHandler<TContext>(IPipelineBuildContext context) where TContext : IExecutionContext {
-			if (HandlerType is IExecutionHandler<TContext> handler) {
-				return context.Services.GetService(HandlerType);
-			}
-
-			var ctors = HandlerType.GetConstructors();
-			if (ctors.Length == 0)
-				return Activator.CreateInstance(HandlerType);
-
-			if (ctors.Length > 1)
-				throw new InvalidOperationException($"The handler type {HandlerType} has more than one constructor and cannot be instantiated.");
-
-			var ctor = ctors[0];
-
-			var args = ctor.GetParameters();
-			if (args.Length == 0)
-				return Activator.CreateInstance(HandlerType);
-
-			var ctorArgs = new object[args.Length];
-			for (var i = 0; i < args.Length; i++) {
-				var arg = args[i];
-				var service = context.Services.GetService(arg.ParameterType);
-				if (service == null)
-					throw new InvalidOperationException($"The handler type {HandlerType} requires a service of type {arg.ParameterType} that is not available in the context.");
-
-				ctorArgs[i] = service;
-			}
-
-			// TODO: should we use an ActivatorUtils instead?
-			return Activator.CreateInstance(HandlerType, ctorArgs);
+		/// <summary>
+		/// Creates a node of the execution tree of the pipeline
+		/// that is used to execute the step in the pipeline.
+		/// </summary>
+		/// <typeparam name="TContext">
+		/// The type of the context of the pipeline execution.
+		/// </typeparam>
+		/// <param name="buildContext">
+		/// The context of the pipeline build that is used to create
+		/// the executor for the step.
+		/// </param>
+		/// <param name="next">
+		/// An optional reference to the next step in the pipeline.
+		/// </param>
+		/// <returns>
+		/// Returns an instance of <see cref="PipelineExecutionNode{TContext}"/>
+		/// that can be used to execute the step in the pipeline.
+		/// </returns>
+		public PipelineExecutionNode<TContext> CreateExecutionNode<TContext>(PipelineBuildContext buildContext, PipelineExecutionNode<TContext>? next) where TContext : PipelineExecutionContext {
+			return PipelineExecutionNode<TContext>.Create(HandlerType, buildContext, Arguments, next);
 		}
 	}
 }

@@ -85,14 +85,38 @@ namespace Deveel.Pipelines {
 			Assert.NotNull(pipeline.Root);
 		}
 
-		[ExcludeFromCodeCoverage]
+		[Fact]
+		public void InvalidHandlerType() {
+			var services = new ServiceCollection();
+			var serviceProvider = services.BuildServiceProvider();
+
+			Assert.Throws<PipelineBuildException>(() => {
+				new TestPipelineBuilder()
+					.Use<InvalidHandler>()
+					.Build(new TestBuildContext(serviceProvider));
+			});
+		}
+
+		[Fact]
+		public void SingleHandlerWithoutNext() {
+			var services = new ServiceCollection();
+			var serviceProvider = services.BuildServiceProvider();
+			
+			var pipeline = new TestPipelineBuilder()
+				.Use<HandlerWithoutNext>()
+				.Build(new TestBuildContext(serviceProvider));
+
+			Assert.NotNull(pipeline);
+			Assert.NotNull(pipeline.Root);
+			Assert.Null(pipeline.Root.Next);
+		}
+
 		class SimpleHandler : IExecutionHandler<TestContext> {
 			public Task HandleAsync(TestContext context, ExecutionDelegate<TestContext>? next) {
 				return Task.CompletedTask;
 			}
 		}
 
-		[ExcludeFromCodeCoverage]
 		class HandlerByContract {
 			public Task HandleAsync(TestContext context, ExecutionDelegate<TestContext>? next) {
 				return Task.CompletedTask;
@@ -113,6 +137,18 @@ namespace Deveel.Pipelines {
 			public IServiceProvider ServiceProvider { get; }
 
 			public Task HandleAsync(TestContext context, ExecutionDelegate<TestContext>? next) {
+				return Task.CompletedTask;
+			}
+		}
+
+		class InvalidHandler {
+			public Task HandleAsync() {
+				return Task.CompletedTask;
+			}
+		}
+
+		class HandlerWithoutNext {
+			public Task HandleAsync(TestContext context) {
 				return Task.CompletedTask;
 			}
 		}
