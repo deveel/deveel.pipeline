@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pack Libraries
-        run: dotnet pack ./src/**/*.csproj -c Release --no-build --no-restore --include-symbols --include-source -o ./nupkgs
+        run: dotnet pack -c Release --no-build --no-restore --include-symbols --include-source -o ./nupkgs
 
       - name: Publish to GitHub Packages
         run: dotnet nuget push ./nupkgs/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

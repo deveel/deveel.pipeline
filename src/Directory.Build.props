@@ -7,6 +7,39 @@
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <Authors>Antonello Provenzano</Authors>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>antonello</Authors>
+    <Company>Deveel</Company>
+    <Copyright>Copyright (C) 2024 Deveel</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://pipeline.deveel.org</PackageProjectUrl>
+    <PackageIcon>deveel-logo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/deveel/deveel.pipeline</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DeterministicBuilds>true</DeterministicBuilds>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\deveel-logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\apl2.0.licenseheader" Link="apl2.0.licenseheader"/>
+  </ItemGroup>
 </Project>
