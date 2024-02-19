@@ -76,6 +76,23 @@ namespace Deveel.Pipelines {
 			}
 		}
 
+		public Task ExecuteAsync() {
+			var defaultCtor = typeof(TContext).GetConstructor(Type.EmptyTypes);
+			if (defaultCtor == null)
+				throw new PipelineException($"The context type {typeof(TContext)} does not have a default constructor.");
+
+			TContext context;
+
+			try {
+				context = (TContext)(Activator.CreateInstance(typeof(TContext))!);
+			} catch (Exception ex) {
+
+				throw new PipelineException($"Could not instantiate the context type {typeof(TContext)}", ex);
+			}
+
+			return ExecuteAsync(context);
+		}
+
 		private PipelineExecutionNode<TContext>? NextNode(TContext context, PipelineExecutionNode<TContext>? node) {
 			while (node != null) {
 				if (context.IsNextInvoked(node.Id)) {

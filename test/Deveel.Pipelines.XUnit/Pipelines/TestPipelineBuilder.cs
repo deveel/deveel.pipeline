@@ -18,5 +18,9 @@
 		public TestPipeline Build(TestBuildContext buildContext) {
 			return new TestPipeline(BuildExecution(buildContext));
 		}
+
+		public TestPipeline Build() {
+			return Build(new TestBuildContext(null));
+		}
 	}
 }

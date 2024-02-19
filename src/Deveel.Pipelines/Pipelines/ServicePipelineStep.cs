@@ -155,7 +155,11 @@ namespace Deveel.Pipelines {
 		}
 
 		private static object? CreateHandler(Type handlerType, PipelineBuildContext context) {
-			return ActivatorUtilities.CreateInstance(context.Services, handlerType);
+			if (context.Services != null)
+				return ActivatorUtilities.CreateInstance(context.Services, handlerType);
+
+			// TODO: add support for other constructor arguments
+			return Activator.CreateInstance(handlerType);
 		}
 
 		private object?[] CreateHandlerArguments<TContext>(Type handlerType, TContext context, ExecutionDelegate<TContext>? next, ParameterInfo[] parameters, object?[]? arguments = null)
