@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 namespace Deveel.Pipelines {
 	/// <summary>
 	/// An execution pipeline that handles a series of steps
@@ -76,6 +75,22 @@ namespace Deveel.Pipelines {
 			}
 		}
 
+		/// <summary>
+		/// Executes the pipeline against a new instance of the context,
+		/// implicitly created through the default constructor.
+		/// </summary>
+		/// <returns>
+		/// Returns the task that represents the asynchronous execution
+		/// of the pipeline.
+		/// </returns>
+		/// <exception cref="PipelineException">
+		/// Thrown when the context type does not have a default constructor.
+		/// </exception>
+ 		/// <exception cref="TaskCanceledException">
+		/// If the execution of the pipeline was cancelled through the
+		/// cancellation token of the given context.
+		/// </exception>
+		/// <seealso cref="ExecuteAsync(TContext)"/>
 		public Task ExecuteAsync() {
 			var defaultCtor = typeof(TContext).GetConstructor(Type.EmptyTypes);
 			if (defaultCtor == null)
@@ -84,7 +99,7 @@ namespace Deveel.Pipelines {
 			TContext context;
 
 			try {
-				context = (TContext)(Activator.CreateInstance(typeof(TContext))!);
+				context = (TContext)defaultCtor.Invoke(null);
 			} catch (Exception ex) {
 
 				throw new PipelineException($"Could not instantiate the context type {typeof(TContext)}", ex);
