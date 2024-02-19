@@ -9,7 +9,7 @@
 	/// </typeparam>
 	/// <seealso cref="Pipeline{TContext}"/>
 	public class PipelineBuilder<TContext> : IPipelineBuilder<TContext> where TContext : PipelineExecutionContext {
-		private readonly List<PipelineStep> steps = new List<PipelineStep>();
+		private readonly List<IPipelineStep> steps = new List<IPipelineStep>();
 
 		/// <summary>
 		/// Builds the execution tree of the pipeline.
@@ -27,23 +27,23 @@
 		/// <exception cref="ArgumentNullException">
 		/// Thrown when the given <paramref name="context"/> is <c>null</c>.
 		/// </exception>
-		protected virtual PipelineExecutionNode<TContext> BuildExecution(PipelineBuildContext context) {
+		protected virtual PipelineExecutionNode<TContext>? BuildExecution(PipelineBuildContext context) {
 			ArgumentNullException.ThrowIfNull(context, nameof(context));
 
 			if (steps.Count == 0)
-				throw new PipelineBuildException("No steps were added to the pipeline");
+				return null;
 
 			PipelineExecutionNode<TContext>? next = null;
 
 			for (var i = steps.Count - 1; i >= 0; i--) {
 				var step = steps[i];
-				next = step.CreateExecutionNode<TContext>(context, next);
+				next = step.CreateNode<TContext>(context, next);
 			}
 
-			return next!;
+			return next;
 		}
 
-		void IPipelineBuilder<TContext>.AddStep(PipelineStep step) {
+		void IPipelineBuilder<TContext>.AddStep(IPipelineStep step) {
 			AddStep(step);
 		}
 
@@ -57,11 +57,33 @@
 		/// An array of arguments that are to be used to instantiate or
 		/// invoke the handler.
 		/// </param>
-		/// <seealso cref="AddStep(PipelineStep)"/>
-		/// <seealso cref="PipelineStep"/>
+		/// <seealso cref="AddStep(IPipelineStep)"/>
+		/// <seealso cref="ServicePipelineStep"/>
 		protected void AddStep(Type handlerType, params object[] args) {
-			AddStep(new PipelineStep(handlerType, args));
+			AddStep(new ServicePipelineStep(handlerType, args));
 		}
+
+		/// <summary>
+		/// Adds a step to the pipeline that delegates to a function
+		/// the execution of the step.
+		/// </summary>
+		/// <param name="func">
+		/// The delegate that is used to execute the step in the pipeline.
+		/// </param>
+		/// <seealso cref="AddStep(IPipelineStep)"/>
+		/// <seealso cref="DelegatePipelineStep.Create{TContext}(ExecutionDelegate{TContext})"/>
+		protected void AddStep(ExecutionDelegate<TContext> func)
+			=> AddStep(DelegatePipelineStep.Create(func));
+
+		/// <summary>
+		/// Adds a step to the pipeline that delegates to a function
+		/// the execution of the step.
+		/// </summary>
+		/// <param name="func"></param>
+		/// <seealso cref="AddStep(IPipelineStep)"/>
+		/// <seealso cref="DelegatePipelineStep.Create{TContext}(Func{TContext, ExecutionDelegate{TContext}, Task})"/>
+		protected void AddStep(Func<TContext, ExecutionDelegate<TContext>, Task> func)
+			=> AddStep(DelegatePipelineStep.Create(func));
 
 		/// <summary>
 		/// Adds a step to the pipeline that is to be built.
@@ -69,7 +91,7 @@
 		/// <param name="step">
 		/// The step to be added to the pipeline.
 		/// </param>
-		protected void AddStep(PipelineStep step) {
+		protected void AddStep(IPipelineStep step) {
 			ArgumentNullException.ThrowIfNull(step, nameof(step));
 			steps.Add(step);
 		}

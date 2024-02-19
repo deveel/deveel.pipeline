@@ -1,9 +1,9 @@
 ﻿namespace Deveel.Pipelines {
 	public class TestPipeline : Pipeline<TestContext> {
-		internal TestPipeline(PipelineExecutionNode<TestContext> executionRoot) 
+		internal TestPipeline(PipelineExecutionNode<TestContext>? executionRoot) 
 			: base(executionRoot) {
 		}
 
-		public PipelineExecutionNode<TestContext> Root => ExecutionRoot;
+		public PipelineExecutionNode<TestContext>? Root => ExecutionRoot;
 	}
 }

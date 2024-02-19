@@ -150,6 +150,64 @@ namespace Deveel.Pipelines {
 			Assert.NotNull(context.Value);
 		}
 
+		[Fact]
+		public async Task SingleInlineHandler() {
+			var services = new ServiceCollection();
+			var serviceProvider = services.BuildServiceProvider();
+
+			var pipeline = new TestPipelineBuilder()
+				.Use(context => {
+					return Task.CompletedTask;
+				})
+				.Build(new TestBuildContext(serviceProvider));
+
+			Assert.NotNull(pipeline);
+			var context = new TestContext(serviceProvider);
+
+			await pipeline.ExecuteAsync(context);
+
+			Assert.NotNull(context);
+		}
+
+		[Fact]
+		public async Task MultipleMixedStepsInlineAndServiced() {
+			var services = new ServiceCollection();
+			var serviceProvider = services.BuildServiceProvider();
+
+			var pipeline = new TestPipelineBuilder()
+				.Use<SimpleHandler>()
+				.Use(context => {
+					return Task.CompletedTask;
+				})
+				.Build(new TestBuildContext(serviceProvider));
+
+			Assert.NotNull(pipeline);
+
+			var context = new TestContext(serviceProvider);
+			await pipeline.ExecuteAsync(context);
+
+			Assert.NotNull(context);
+		}
+
+		[Fact]
+		public async Task SingleInlineHandlerWithNext() {
+			var services = new ServiceCollection();
+			var serviceProvider = services.BuildServiceProvider();
+
+			var pipeline = new TestPipelineBuilder()
+				.Use((context, next) => {
+					return next?.Invoke(context) ?? Task.CompletedTask;
+				})
+				.Build(new TestBuildContext(serviceProvider));
+
+			Assert.NotNull(pipeline);
+
+			var context = new TestContext(serviceProvider);
+			await pipeline.ExecuteAsync(context);
+
+			Assert.NotNull(context);
+		}
+
 		private class SimpleHandler : IExecutionHandler<TestContext> {
 			public Task HandleAsync(TestContext context, ExecutionDelegate<TestContext>? next)
 				=> Task.CompletedTask;

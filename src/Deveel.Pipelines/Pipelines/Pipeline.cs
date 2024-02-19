@@ -13,14 +13,14 @@
 		/// <param name="executionRoot">
 		/// The root node of the execution tree of the pipeline.
 		/// </param>
-		protected internal Pipeline(PipelineExecutionNode<TContext> executionRoot) {
+		protected internal Pipeline(PipelineExecutionNode<TContext>? executionRoot) {
 			ExecutionRoot = executionRoot;
 		}
 
 		/// <summary>
 		/// Gets the root node of the execution tree of the pipeline.
 		/// </summary>
-		protected PipelineExecutionNode<TContext> ExecutionRoot { get; }
+		protected PipelineExecutionNode<TContext>? ExecutionRoot { get; }
 
 		/// <summary>
 		/// Executes the pipeline against the given context.
