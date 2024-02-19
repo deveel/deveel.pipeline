@@ -19,6 +19,8 @@ namespace Deveel.Pipelines {
 	/// Represents the context of the execution of a pipeline.
 	/// </summary>
 	public abstract class PipelineExecutionContext {
+		private readonly ConcurrentDictionary<string, bool> nextExecuted = new ConcurrentDictionary<string, bool>();
+
 		/// <summary>
 		/// Constructs the context of the execution of a pipeline.
 		/// </summary>
@@ -47,7 +49,14 @@ namespace Deveel.Pipelines {
 		/// </summary>
 		public virtual CancellationToken ExecutionCancelled { get; } = default;
 
-		internal bool WasNextInvoked { get; set; }
+		internal bool IsNextInvoked(string? nodeId) {
+			return !String.IsNullOrWhiteSpace(nodeId) &&
+				nextExecuted.TryGetValue(nodeId, out var value) && value;
+		}
+
+		internal void NextWasInvoked(string nodeId) {
+			nextExecuted.AddOrUpdate(nodeId, true, (_, __) => true);
+		}
 
 		/// <summary>
 		/// Gets a dictionary of properties that can be used to store

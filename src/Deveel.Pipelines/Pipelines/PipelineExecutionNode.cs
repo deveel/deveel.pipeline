@@ -25,10 +25,13 @@ namespace Deveel.Pipelines {
 	/// The type of the context that is used to execute the pipeline.
 	/// </typeparam>
 	public sealed class PipelineExecutionNode<TContext> where TContext : PipelineExecutionContext {
-		internal PipelineExecutionNode(ExecutionDelegate<TContext> callback, PipelineExecutionNode<TContext>? next) {
+		internal PipelineExecutionNode(IPipelineStep step, ExecutionDelegate<TContext> callback, PipelineExecutionNode<TContext>? next) {
+			Step = step;
 			Callback = callback ?? throw new ArgumentNullException(nameof(callback));
 			Next = next;
 		}
+
+		internal string? Id => (Step as IIdentifiedPipelineStep)?.Id;
 
 		/// <summary>
 		/// Gets the delegate that is used to execute the step in the pipeline.
@@ -39,5 +42,10 @@ namespace Deveel.Pipelines {
 		/// Gets the reference to the next step in the pipeline.
 		/// </summary>
 		public PipelineExecutionNode<TContext>? Next { get; }
+
+		/// <summary>
+		/// Gets the step that is executed by the node.
+		/// </summary>
+		public IPipelineStep Step { get; }
 	}
 }

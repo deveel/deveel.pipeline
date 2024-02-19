@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 namespace Deveel.Pipelines {
 	/// <summary>
 	/// An execution pipeline that handles a series of steps
@@ -65,17 +66,26 @@ namespace Deveel.Pipelines {
 		/// cancellation token of the given context.
 		/// </exception>
 		public virtual async Task ExecuteAsync(TContext context) {
-			var executor = ExecutionRoot;
-			while (executor != null) {
+			var node = ExecutionRoot;
+			while (node != null) {
 				context.ExecutionCancelled.ThrowIfCancellationRequested();
 
-				await executor.Callback(context);
+				await node.Callback(context);
 
-				// TODO: find a way to skip all the next invocations
-				//       that have been done in the callback
-				executor = context.WasNextInvoked ? executor.Next?.Next : executor.Next;
-				context.WasNextInvoked = false;
+				node = NextNode(context, node);
 			}
+		}
+
+		private PipelineExecutionNode<TContext>? NextNode(TContext context, PipelineExecutionNode<TContext>? node) {
+			while (node != null) {
+				if (context.IsNextInvoked(node.Id)) {
+					node = node.Next?.Next;
+				} else {
+					return node.Next;
+				}
+			}
+
+			return null;
 		}
 	}
 }

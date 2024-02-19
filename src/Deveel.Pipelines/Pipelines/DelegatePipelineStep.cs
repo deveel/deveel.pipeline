@@ -32,13 +32,13 @@ namespace Deveel.Pipelines {
 			// TODO: wrap the next callback to intercept the execution
 
 			if (Handler is ExecutionDelegate<TContext> callback) {
-				return new PipelineExecutionNode<TContext>(callback, next);
+				return new PipelineExecutionNode<TContext>(this, callback, next);
 			} else {
 				var parameters = Handler.Method.GetParameters();
 				var withNext = parameters.Length == 2 && parameters[1].ParameterType == typeof(ExecutionDelegate<TContext>);
 				var handler = new DelegateHandler<TContext>(Handler, next?.Callback, withNext);
 				var wrapper = (ExecutionDelegate<TContext>) Delegate.CreateDelegate(typeof(ExecutionDelegate<TContext>), handler, nameof(DelegateHandler<TContext>.HandleAsync));
-				return new PipelineExecutionNode<TContext>(wrapper, next);
+				return new PipelineExecutionNode<TContext>(this, wrapper, next);
 			}
 		}
 

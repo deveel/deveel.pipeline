@@ -42,3 +42,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: dotnet nuget push ./nupkgs/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
         
+  clean:
+    needs: publish
+    name: "Clean Old Packages"
+    uses: ./.github/workflows/remove-packages.yml

@@ -21,9 +21,13 @@ namespace Deveel.Pipelines {
 	/// Describes a single step in a pipeline that
 	/// references a specific action to be executed.
 	/// </summary>
-	public sealed class ServicePipelineStep : IPipelineStep {
+	public sealed class ServicePipelineStep : IPipelineStep, IIdentifiedPipelineStep {
 		private const string HandleMethodName = "Handle";
 		private const string HandleAsyncMethodName = "HandleAsync";
+
+		private static readonly Dictionary<Type, int> handlerCounters = new Dictionary<Type, int>();
+
+		private readonly string stepId;
 
 		/// <summary>
 		/// Constructs the pipeline step with the specified
@@ -43,6 +47,20 @@ namespace Deveel.Pipelines {
 		public ServicePipelineStep(Type handlerType, params object[]? arguments) {
 			HandlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
 			Arguments = arguments;
+
+			stepId = $"{handlerType.FullName}__{HandlerCounter(handlerType)}";
+		}
+
+		private static int HandlerCounter(Type handlerType) {
+			if (!handlerCounters.TryGetValue(handlerType, out var counter)) {
+				counter = 0;
+			} else {
+				counter++;
+			}
+
+			handlerCounters[handlerType] = counter;
+
+			return counter;
 		}
 
 		/// <summary>
@@ -62,6 +80,7 @@ namespace Deveel.Pipelines {
 		/// </remarks>
 		public object[]? Arguments { get; }
 
+		string IIdentifiedPipelineStep.Id => stepId;
 
 		/// <summary>
 		/// Creates a node of the execution tree of the pipeline
@@ -98,10 +117,10 @@ namespace Deveel.Pipelines {
 				callback = BuildCallback(HandlerType, handler, next, Arguments);
 			}
 
-			return new PipelineExecutionNode<TContext>(callback, next);
+			return new PipelineExecutionNode<TContext>(this, callback, next);
 		}
 
-		private static ExecutionDelegate<TContext> BuildCallback<TContext>(Type handlerType, object handler, PipelineExecutionNode<TContext>? next, object?[]? args)
+		private ExecutionDelegate<TContext> BuildCallback<TContext>(Type handlerType, object handler, PipelineExecutionNode<TContext>? next, object?[]? args)
 			where TContext : PipelineExecutionContext {
 			var handleMethods = handlerType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
 				.Where(x => x.Name == HandleMethodName ||
@@ -139,7 +158,7 @@ namespace Deveel.Pipelines {
 			return ActivatorUtilities.CreateInstance(context.Services, handlerType);
 		}
 
-		private static object?[] CreateHandlerArguments<TContext>(Type handlerType, TContext context, ExecutionDelegate<TContext>? next, ParameterInfo[] parameters, object?[]? arguments = null)
+		private object?[] CreateHandlerArguments<TContext>(Type handlerType, TContext context, ExecutionDelegate<TContext>? next, ParameterInfo[] parameters, object?[]? arguments = null)
 			where TContext : PipelineExecutionContext {
 			var args = new List<object?>();
 
@@ -173,26 +192,26 @@ namespace Deveel.Pipelines {
 				parameters[0].ParameterType == contextType;
 		}
 
-		private static Delegate WrapNext<TContext>(Type delegateType, TContext context, ExecutionDelegate<TContext>? next)
+		private Delegate WrapNext<TContext>(Type delegateType, TContext context, ExecutionDelegate<TContext>? next)
 			where TContext : PipelineExecutionContext {
-			var wrapper = new NextHandlerWrapper<TContext>(context, next);
+			var wrapper = new NextHandlerWrapper<TContext>(this, next);
 			return Delegate.CreateDelegate(delegateType, wrapper, nameof(NextHandlerWrapper<TContext>.HandleAsync));
 		}
 
 		class NextHandlerWrapper<TContext> where TContext : PipelineExecutionContext {
-			private readonly TContext executor;
+			private readonly ServicePipelineStep step;
 			private readonly ExecutionDelegate<TContext>? next;
 
-			public NextHandlerWrapper(TContext executor, ExecutionDelegate<TContext>? next) {
+			public NextHandlerWrapper(ServicePipelineStep step, ExecutionDelegate<TContext>? next) {
+				this.step = step;
 				this.next = next;
-				this.executor = executor;
 			}
 
 			public Task HandleAsync(TContext context) {
 				try {
 					return next?.Invoke(context) ?? Task.CompletedTask;
 				} finally {
-					executor.WasNextInvoked = true;
+					context.NextWasInvoked((step as IIdentifiedPipelineStep).Id);
 				}
 			}
 		}
