@@ -65,17 +65,59 @@ namespace Deveel.Pipelines {
 		/// cancellation token of the given context.
 		/// </exception>
 		public virtual async Task ExecuteAsync(TContext context) {
-			var executor = ExecutionRoot;
-			while (executor != null) {
+			var node = ExecutionRoot;
+			while (node != null) {
 				context.ExecutionCancelled.ThrowIfCancellationRequested();
 
-				await executor.Callback(context);
+				await node.Callback(context);
 
-				// TODO: find a way to skip all the next invocations
-				//       that have been done in the callback
-				executor = context.WasNextInvoked ? executor.Next?.Next : executor.Next;
-				context.WasNextInvoked = false;
+				node = NextNode(context, node);
 			}
+		}
+
+		/// <summary>
+		/// Executes the pipeline against a new instance of the context,
+		/// implicitly created through the default constructor.
+		/// </summary>
+		/// <returns>
+		/// Returns the task that represents the asynchronous execution
+		/// of the pipeline.
+		/// </returns>
+		/// <exception cref="PipelineException">
+		/// Thrown when the context type does not have a default constructor.
+		/// </exception>
+ 		/// <exception cref="TaskCanceledException">
+		/// If the execution of the pipeline was cancelled through the
+		/// cancellation token of the given context.
+		/// </exception>
+		/// <seealso cref="ExecuteAsync(TContext)"/>
+		public Task ExecuteAsync() {
+			var defaultCtor = typeof(TContext).GetConstructor(Type.EmptyTypes);
+			if (defaultCtor == null)
+				throw new PipelineException($"The context type {typeof(TContext)} does not have a default constructor.");
+
+			TContext context;
+
+			try {
+				context = (TContext)defaultCtor.Invoke(null);
+			} catch (Exception ex) {
+
+				throw new PipelineException($"Could not instantiate the context type {typeof(TContext)}", ex);
+			}
+
+			return ExecuteAsync(context);
+		}
+
+		private PipelineExecutionNode<TContext>? NextNode(TContext context, PipelineExecutionNode<TContext>? node) {
+			while (node != null) {
+				if (context.IsNextInvoked(node.Id)) {
+					node = node.Next?.Next;
+				} else {
+					return node.Next;
+				}
+			}
+
+			return null;
 		}
 	}
 }
