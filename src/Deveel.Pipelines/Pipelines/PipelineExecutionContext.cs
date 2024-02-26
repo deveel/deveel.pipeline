@@ -20,7 +20,6 @@ namespace Deveel.Pipelines {
 	/// </summary>
 	public abstract class PipelineExecutionContext {
 		private readonly ConcurrentDictionary<string, bool> nextExecuted = new ConcurrentDictionary<string, bool>();
-
 		/// <summary>
 		/// Gets a token that can be used to signal the cancellation
 		/// of the execution of the pipeline.

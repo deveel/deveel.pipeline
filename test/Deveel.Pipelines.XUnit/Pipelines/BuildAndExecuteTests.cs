@@ -18,7 +18,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task EmptyBuilder() {
+		public async Task EmptyBuilder_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Build(new TestBuildContext(services));
 
@@ -29,7 +29,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task SingleStepBuilder() {
+		public async Task SingleStepBuilder_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<SimpleHandler>()
 				.Build();
@@ -42,7 +42,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task MultipleStepBuilder() {
+		public async Task MultipleStepBuilder_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<SimpleHandler>()
 				.Use<SimpleHandler>()
@@ -57,7 +57,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task SingleContractStepBuilder() {
+		public async Task SingleContractStepBuilder_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<HandlerByContract>()
 				.Build();
@@ -69,7 +69,15 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task SingleStepWithArgsBuilder() {
+		public void SingleInvalidContractStepBuilder_Build_Error() {
+			var builder = new TestPipelineBuilder()
+				.Use<HandlerWithInvalidContract>();
+
+			Assert.Throws<PipelineBuildException>(() => builder.Build());
+		}
+
+		[Fact]
+		public async Task SingleStepWithArgsBuilder_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<HandlerWithArgs>("test")
 				.Build();
@@ -81,7 +89,16 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task MultipleStepsInSequenceChangingValue() {
+		public async void SingleStepWithArgsBuilder_Execute_Error() {
+			var pipeline = new TestPipelineBuilder()
+				.Use<HandlerWithArgs>()
+				.Build();
+
+			await Assert.ThrowsAsync<PipelineException>(() => pipeline.ExecuteAsync());
+		}
+
+		[Fact]
+		public async Task MultipleStepsInSequenceChangingValue_Executes_ValueIsChanined() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<ChangeValueHandler>("test")
 				.Use<ChangeValueHandler>("test2")
@@ -98,7 +115,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task MultipleStepsWithCustomDelegateHandler() {
+		public async Task MultipleStepsWithCustomDelegateHandler_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<CustomDelegateHandler>()
 				.Use<SimpleHandler>()
@@ -110,7 +127,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task MultipleStepsWithoutNext() {
+		public async Task MultipleStepsWithoutNext_Executes_NextIsCalledByPipeline() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<HandlerWithoutNext>()
 				.Use<ChangeValueHandler>("test")
@@ -124,10 +141,32 @@ namespace Deveel.Pipelines {
 
 			Assert.NotNull(context);
 			Assert.NotNull(context.Value);
+			Assert.IsType<string>(context.Value);
+			Assert.Equal("test", context.Value);
 		}
 
 		[Fact]
-		public async Task SingleInlineHandler() {
+		public async Task MultipleStepsWithNext_Executes_NextIsCalledByHandler() {
+			var pipeline = new TestPipelineBuilder()
+				.Use<CustomDelegateHandler>()
+				.Use<ChangeValueHandler>("test")
+				.Build(new TestBuildContext(services));
+
+			Assert.NotNull(pipeline);
+
+			var context = new TestContext();
+
+			await pipeline.ExecuteAsync(context);
+
+			Assert.NotNull(context);
+			Assert.NotNull(context.Value);
+			Assert.IsType<string>(context.Value);
+			Assert.Equal("test", context.Value);
+		}
+
+
+		[Fact]
+		public async Task SingleInlineHandler_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use(context => {
 					return Task.CompletedTask;
@@ -140,7 +179,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task MultipleMixedStepsInlineAndServiced() {
+		public async Task MultipleMixedStepsInlineAndServiced_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use<SimpleHandler>()
 				.Use(context => {
@@ -154,7 +193,7 @@ namespace Deveel.Pipelines {
 		}
 
 		[Fact]
-		public async Task SingleInlineHandlerWithNext() {
+		public async Task SingleInlineHandlerWithNext_Executes_NoError() {
 			var pipeline = new TestPipelineBuilder()
 				.Use((context, next) => {
 					return next?.Invoke(context) ?? Task.CompletedTask;
@@ -165,6 +204,30 @@ namespace Deveel.Pipelines {
 
 			await pipeline.ExecuteAsync();
 		}
+
+		[Fact]
+		public async Task SingleSynchHandler_Executes_NoError() {
+			var pipeline = new TestPipelineBuilder()
+				.Use<SynchHandler>()
+				.Build();
+
+			Assert.NotNull(pipeline);
+
+			await pipeline.ExecuteAsync();
+		}
+
+		[Fact]
+		public async Task SingleSynchHandlerWithNext_Executes_NoError() {
+			var pipeline = new TestPipelineBuilder()
+				.Use<SynchHandlerWithNext>()
+				.Build();
+
+			Assert.NotNull(pipeline);
+
+			await pipeline.ExecuteAsync();
+		}
+
+		#region Handlers
 
 		private class SimpleHandler : IExecutionHandler<TestContext> {
 			public Task HandleAsync(TestContext context, ExecutionDelegate<TestContext>? next)
@@ -219,5 +282,25 @@ namespace Deveel.Pipelines {
 				return Task.CompletedTask;
 			}
 		}
+
+		class HandlerWithInvalidContract {
+			public Task Invoke(TestContext context, ExecutionDelegate<TestContext>? next) {
+				return Task.CompletedTask;
+			}
+		}
+
+		class SynchHandler {
+			public void Handle(TestContext context) {
+				// Do nothing
+			}
+		}
+
+		class SynchHandlerWithNext {
+			public void Handle(TestContext context, ExecutionDelegate<TestContext>? next) {
+				// Do nothing
+			}
+		}
+
+		#endregion
 	}
 }

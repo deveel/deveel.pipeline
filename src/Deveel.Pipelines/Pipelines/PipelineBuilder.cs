@@ -22,8 +22,9 @@ namespace Deveel.Pipelines {
 	/// The type of the context that is used to execute the pipeline.
 	/// </typeparam>
 	/// <seealso cref="Pipeline{TContext}"/>
-	public class PipelineBuilder<TContext> : IPipelineBuilder<TContext> where TContext : PipelineExecutionContext {
+	public class PipelineBuilder<TContext> where TContext : PipelineExecutionContext {
 		private readonly List<IPipelineStep> steps = new List<IPipelineStep>();
+		private IServiceProvider? builderServices;
 
 		/// <summary>
 		/// Builds the execution tree of the pipeline.
@@ -55,10 +56,6 @@ namespace Deveel.Pipelines {
 			}
 
 			return next;
-		}
-
-		void IPipelineBuilder<TContext>.AddStep(IPipelineStep step) {
-			AddStep(step);
 		}
 
 		/// <summary>
@@ -110,8 +107,17 @@ namespace Deveel.Pipelines {
 			steps.Add(step);
 		}
 
-		 Pipeline<TContext> IPipelineBuilder<TContext>.Build(PipelineBuildContext buidContext) 
-			=> Build(buidContext);
+		/// <summary>
+		/// Sets the provider instance that is used to resolve the
+		/// services that are required to build the pipeline.
+		/// </summary>
+		/// <param name="services">
+		/// The instance of <see cref="IServiceProvider"/> that is used
+		/// to resolve the services required to build the pipeline.
+		/// </param>
+		protected void SetServiceProvider(IServiceProvider services) {
+			builderServices = services;
+		}
 
 		/// <summary>
 		/// Builds the pipeline against the given context.
@@ -124,7 +130,7 @@ namespace Deveel.Pipelines {
 		/// result of the building of the pipeline.
 		/// </returns>
 		/// <seealso cref="BuildExecution(PipelineBuildContext)"/>
-		protected virtual Pipeline<TContext> Build(PipelineBuildContext buidContext) 
+		protected virtual Pipeline<TContext> BuildPipeline(PipelineBuildContext buidContext) 
 			=> new Pipeline<TContext>(BuildExecution(buidContext));
 	}
 }

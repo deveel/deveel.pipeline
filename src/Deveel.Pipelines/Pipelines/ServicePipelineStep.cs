@@ -170,16 +170,26 @@ namespace Deveel.Pipelines {
 				args.AddRange(arguments);
 			}
 
-			for (var i = 0; i < parameters.Length; i++) {
-				var param = parameters[i];
-				if (param.ParameterType == typeof(TContext)) {
-					args.Insert(i, context);
-				} else if (param.ParameterType == typeof(ExecutionDelegate<TContext>)) {
-					args.Insert(i, WrapNext(param.ParameterType, context, next));
-				} else if (param.ParameterType.IsSubclassOf(typeof(Delegate)) &&
-					IsNextDelegate(param.ParameterType, typeof(TContext))) {
-					args.Insert(i, WrapNext(param.ParameterType, context, next));
+			// TODO: make a better check for the parameters
+
+			try {
+				for (var i = 0; i < parameters.Length; i++) {
+					var param = parameters[i];
+					if (param.ParameterType == typeof(TContext)) {
+						args.Insert(i, context);
+					} else if (param.ParameterType == typeof(ExecutionDelegate<TContext>)) {
+						args.Insert(i, WrapNext(param.ParameterType, context, next));
+					} else if (param.ParameterType.IsSubclassOf(typeof(Delegate)) &&
+						IsNextDelegate(param.ParameterType, typeof(TContext))) {
+						args.Insert(i, WrapNext(param.ParameterType, context, next));
+					}
 				}
+			} catch (ArgumentOutOfRangeException ex) {
+				throw new PipelineException($"An argument of the method handler {HandlerType} is not in the range of allowed parameters", ex);
+			} catch (PipelineException) {
+				throw;
+			} catch(Exception ex) {
+				throw new PipelineException($"An error occurred while creating the arguments for the handler {HandlerType}", ex);
 			}
 
 			if (args.Count != parameters.Length)

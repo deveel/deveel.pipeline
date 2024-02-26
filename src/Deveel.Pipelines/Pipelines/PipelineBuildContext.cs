@@ -28,7 +28,7 @@ namespace Deveel.Pipelines {
 	/// to the pipeline builder.
 	/// </para>
 	/// </remarks>
-	/// <seealso cref="IPipelineBuilder{TContext}.Build(PipelineBuildContext)"/>
+	/// <seealso cref="PipelineBuilder{TContext}.BuildPipeline(PipelineBuildContext)"/>
 	public class PipelineBuildContext {
 		/// <summary>
 		/// Constructs the context with the given service provider.
@@ -37,14 +37,8 @@ namespace Deveel.Pipelines {
 		/// The services that are used to resolve dependencies
 		/// when building the pipeline.
 		/// </param>
-		public PipelineBuildContext(IServiceProvider? services) {
+		public PipelineBuildContext(IServiceProvider? services = null) {
 			Services = services;
-		}
-
-		/// <summary>
-		/// Constructs the context with no service provider.
-		/// </summary>
-		public PipelineBuildContext() : this(null) {
 		}
 
 		/// <summary>
