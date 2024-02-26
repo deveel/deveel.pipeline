@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
   
-      - name: Setup .NET
+      - name: Setup .NET ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
@@ -36,8 +36,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+  
       - name: Pack Libraries
-        run: dotnet pack -c Release --no-build --no-restore --include-symbols --include-source -o ./nupkgs
+        run: dotnet pack -c Release --include-symbols --include-source -o ./nupkgs
 
       - name: Publish to GitHub Packages
         run: dotnet nuget push ./nupkgs/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
