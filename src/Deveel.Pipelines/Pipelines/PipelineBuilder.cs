@@ -74,6 +74,10 @@ namespace Deveel.Pipelines {
 			AddStep(new ServicePipelineStep(handlerType, args));
 		}
 
+		protected void AddStep<THandler>(params object[] args) where THandler : class {
+			AddStep(typeof(THandler), args);
+		}
+
 		/// <summary>
 		/// Adds a step to the pipeline that delegates to a function
 		/// the execution of the step.
