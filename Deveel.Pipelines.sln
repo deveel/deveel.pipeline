@@ -10,8 +10,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "samples\SampleConsoleApp\SampleConsoleApp.csproj", "{BB20DAB5-58C5-4E3A-BD86-A2DA266A3FBE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{725D0B32-DC0B-484C-AB72-D1A0F9022966}"
+	ProjectSection(SolutionItems) = preProject
+		samples\Directory.Build.props = samples\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleServiceApp", "samples\SampleServiceApp\SampleServiceApp.csproj", "{17930ACA-F304-4E62-81BC-B71D23AAB38B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6AF501F8-7BD3-48A1-A0C6-9B6414E6A668}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{BC74A346-F614-4C51-89F3-B5F0A8C6FAC4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +50,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{218467E4-0DE1-4AA9-946F-476020046D73} = {6AF501F8-7BD3-48A1-A0C6-9B6414E6A668}
+		{96A87C21-65F0-499A-91BD-F37466694820} = {BC74A346-F614-4C51-89F3-B5F0A8C6FAC4}
 		{BB20DAB5-58C5-4E3A-BD86-A2DA266A3FBE} = {725D0B32-DC0B-484C-AB72-D1A0F9022966}
 		{17930ACA-F304-4E62-81BC-B71D23AAB38B} = {725D0B32-DC0B-484C-AB72-D1A0F9022966}
 	EndGlobalSection
