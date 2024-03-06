@@ -93,7 +93,7 @@ var pipeline = new MyPipelineBuilder()
 
 ### Steps
 
-To execute a step of a pipeline, you can use two different approaches, which are composabile together:
+To execute a step of a pipeline, you can use two different approaches, which are composable together:
 
 - **Service Steps**: a step that is implemented as a service, and that can be registered in the pipeline builder, and that can be resolved and executed by the pipeline itself.
 - **Delegate Steps**: a step that is implemented as a delegate, and that can be added to the pipeline builder directly.
@@ -106,7 +106,7 @@ This library provides two methodologies to implement a service step, that is a s
 
 The `IExecutionHandler` interface provides a simple contract to implement a step using the `HandleAsync` method, which is called by the pipeline to execute the step.
 
-Although it provides less flexibility than the convention-based approach, it is ultimately provides a better control over the execution of the step, since it's an explicit contract.
+Although it provides less flexibility than the convention-based approach, it ultimately provides better control over the execution of the step, since it's an explicit contract.
 
 ```csharp
 public class AgeCalculationStage : IExecutionHandler<MyContext> {
@@ -126,9 +126,9 @@ It is possible to register the step in the pipeline builder, by using the `AddSt
 
 ```csharp
 public class MyPipelineBuilder : PipelineBuilder<MyContext> {
-	public MyPipeline() {
-		AddStep<AgeCalculationStage>();
-	}
+    public MyPipeline() {
+        AddStep<AgeCalculationStage>();
+    }
 }
 ```
 
@@ -150,7 +150,7 @@ public class CountryResolver {
         _countryResolver = countryResolver;
     }
 
-    public async Task ResolveCountry(MyContext context) {
+    public async Task Handle(MyContext context) {
         context.Country = await _countryResolver.ResolveCountryAsync(context.PhoneNumber);
     }
 }
@@ -205,39 +205,38 @@ public class MyPipelineBuilder : PipelineBuilder<MyContext> {
 }
 
 public class AgeCalculationStage : IExecutionHandler<MyContext> {
-	private readonly IAgeCalculator _ageCalculator;
+    private readonly IAgeCalculator _ageCalculator;
     private readonly int _maxAge;
 
-	public FirstStage(IAgeCalculator ageCalculator, int maxAge) {
-		_ageCalculator = ageCalculator;
-	}
+    public FirstStage(IAgeCalculator ageCalculator, int maxAge) {
+        _ageCalculator = ageCalculator;
+    }
 
-	public async Task HandleAsync(MyContext context, ExecutionDelegate<MyContext>? next) {
-		context.Age = await _ageCalculator.CalculateAgeAsync(context.Name);
+    public async Task HandleAsync(MyContext context, ExecutionDelegate<MyContext>? next) {
+        context.Age = await _ageCalculator.CalculateAgeAsync(context.Name);
 
         if (context.Age > _maxAge)
-			throw new InvalidOperationException("The age is too high");
-	}
+            throw new InvalidOperationException("The age is too high");
+    }
 }
 ```
 
-Or , using the convention-based approach:
+Or, using the convention-based approach:
 
 ```csharp
-
 public class AgeCalculationStage {
-	private readonly IAgeCalculator _ageCalculator;
+    private readonly IAgeCalculator _ageCalculator;
 
-	public FirstStage(IAgeCalculator ageCalculator) {
-		_ageCalculator = ageCalculator;
-	}
+    public FirstStage(IAgeCalculator ageCalculator) {
+        _ageCalculator = ageCalculator;
+    }
 
-	public async Task HandleAsync(MyContext context, int maxAge) {
-		context.Age = await _ageCalculator.CalculateAgeAsync(context.Name);
+    public async Task HandleAsync(MyContext context, int maxAge) {
+        context.Age = await _ageCalculator.CalculateAgeAsync(context.Name);
 
-		if (context.Age > maxAge)
-			throw new InvalidOperationException("The age is too high");
-	}
+        if (context.Age > maxAge)
+            throw new InvalidOperationException("The age is too high");
+    }
 }
 ```
 
@@ -247,11 +246,11 @@ A delegate step is a step that is implemented as a delegate, and that can be add
 
 ```csharp
 public class MyPipelineBuilder : PipelineBuilder<MyContext> {
-	public MyPipeline() {
-		AddStep(context => {
-			context.Age = 32;
-		});
-	}
+    public MyPipeline() {
+        AddStep(context => {
+            context.Age = 32;
+        });
+    }
 }
 ```
 
@@ -263,17 +262,17 @@ By contract and by convention, a step in the pipeline can call the next step in 
 
 ```csharp
 public class AgeCalculationStage : IExecutionHandler<MyContext> {
-	private readonly IAgeCalculator _ageCalculator;
+    private readonly IAgeCalculator _ageCalculator;
 
-	public FirstStage(IAgeCalculator ageCalculator) {
-		_ageCalculator = ageCalculator;
-	}
+    public FirstStage(IAgeCalculator ageCalculator) {
+        _ageCalculator = ageCalculator;
+    }
 
-	public async Task HandleAsync(MyContext context, ExecutionDelegate<MyContext>? next) {
-		context.Age = await _ageCalculator.CalculateAgeAsync(context.Name);
+    public async Task HandleAsync(MyContext context, ExecutionDelegate<MyContext>? next) {
+        context.Age = await _ageCalculator.CalculateAgeAsync(context.Name);
 
-		await next?.Invoke(context);
-	}
+        await next?.Invoke(context);
+    }
 }
 ```
 
