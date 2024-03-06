@@ -10,10 +10,10 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-      - name: "Clean Old Deveel.Pipeline Nuget Packages"
+      - name: "Clean Old Deveel.Pipelines Nuget Packages"
         uses: actions/delete-package-versions@v4
         with:
-          package-name: 'Deveel.Pipeline'
+          package-name: 'Deveel.Pipelines'
           package-type: 'nuget'
           min-versions-to-keep: 10
           delete-only-pre-release-versions: "true"
