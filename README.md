@@ -1,3 +1,5 @@
+[![Pipelines CI](https://github.com/deveel/deveel.pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/deveel/deveel.pipeline/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/deveel/deveel.pipeline/graph/badge.svg?token=YAS1WAS4HZ)](https://codecov.io/gh/deveel/deveel.pipeline) ![GitHub License](https://img.shields.io/github/license/deveel/deveel.pipeline)
+
 # Deveel Pipelines
 
 A simple, _low-ambition_, library for writing pipeline-driven C# applications, with a focus on simplicity and ease of use.
