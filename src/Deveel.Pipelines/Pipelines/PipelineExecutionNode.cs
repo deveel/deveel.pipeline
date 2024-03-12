@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Reflection;
-
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Deveel.Pipelines {
 	/// <summary>
 	/// A node in the execution tree of a pipeline that is used to
@@ -25,13 +21,13 @@ namespace Deveel.Pipelines {
 	/// The type of the context that is used to execute the pipeline.
 	/// </typeparam>
 	public sealed class PipelineExecutionNode<TContext> where TContext : PipelineExecutionContext {
-		internal PipelineExecutionNode(IPipelineStep step, ExecutionDelegate<TContext> callback, PipelineExecutionNode<TContext>? next) {
-			Step = step;
+		internal PipelineExecutionNode(IPipelineExecutable executable, ExecutionDelegate<TContext> callback, PipelineExecutionNode<TContext>? next) {
+			Executable = executable;
 			Callback = callback ?? throw new ArgumentNullException(nameof(callback));
 			Next = next;
 		}
 
-		internal string? Id => (Step as IIdentifiedPipelineStep)?.Id;
+		internal string? Id => (Executable as IIdentifiedPipelineExecutable)?.Id;
 
 		/// <summary>
 		/// Gets the delegate that is used to execute the step in the pipeline.
@@ -44,8 +40,8 @@ namespace Deveel.Pipelines {
 		public PipelineExecutionNode<TContext>? Next { get; }
 
 		/// <summary>
-		/// Gets the step that is executed by the node.
+		/// Gets the element that is executed by the node.
 		/// </summary>
-		public IPipelineStep Step { get; }
+		public IPipelineExecutable Executable { get; }
 	}
 }

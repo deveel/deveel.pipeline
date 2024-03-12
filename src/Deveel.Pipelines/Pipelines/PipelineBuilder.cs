@@ -23,7 +23,9 @@ namespace Deveel.Pipelines {
 	/// </typeparam>
 	/// <seealso cref="Pipeline{TContext}"/>
 	public class PipelineBuilder<TContext> where TContext : PipelineExecutionContext {
-		private readonly List<IPipelineStep> steps = new List<IPipelineStep>();
+		private readonly List<IPipelineExecutable> steps = new List<IPipelineExecutable>();
+		private readonly List<IPipelineExecutable> behaviors = new List<IPipelineExecutable>();
+
 		private IServiceProvider? builderServices;
 
 		/// <summary>
@@ -51,8 +53,11 @@ namespace Deveel.Pipelines {
 			PipelineExecutionNode<TContext>? next = null;
 
 			for (var i = steps.Count - 1; i >= 0; i--) {
-				var step = steps[i];
-				next = step.CreateNode<TContext>(context, next);
+				for (var j = behaviors.Count - 1; j >= 0; j--) {
+					next = behaviors[j].CreateNode<TContext>(context, next);
+				}
+
+				next = steps[i].CreateNode<TContext>(context, next);
 			}
 
 			return next;
@@ -68,12 +73,24 @@ namespace Deveel.Pipelines {
 		/// An array of arguments that are to be used to instantiate or
 		/// invoke the handler.
 		/// </param>
-		/// <seealso cref="AddStep(IPipelineStep)"/>
-		/// <seealso cref="ServicePipelineStep"/>
+		/// <seealso cref="AddStep(IPipelineExecutable)"/>
+		/// <seealso cref="ServicePipelineExecutable"/>
 		protected void AddStep(Type handlerType, params object[] args) {
-			AddStep(new ServicePipelineStep(handlerType, args));
+			AddStep(new ServicePipelineExecutable(handlerType, args));
 		}
 
+		/// <summary>
+		/// Adds a step to the pipeline that is to be built.
+		/// </summary>
+		/// <typeparam name="THandler">
+		/// The type of the handler that is to be used to execute the step.
+		/// </typeparam>
+		/// <param name="args">
+		/// An array of arguments that are to be used to instantiate or
+		/// invoke the handler.
+		/// </param>
+		/// <seealso cref="AddStep(Type, object[])"/>
+		/// <seealso cref="ServicePipelineExecutable"/>
 		protected void AddStep<THandler>(params object[] args) where THandler : class {
 			AddStep(typeof(THandler), args);
 		}
@@ -85,20 +102,20 @@ namespace Deveel.Pipelines {
 		/// <param name="func">
 		/// The delegate that is used to execute the step in the pipeline.
 		/// </param>
-		/// <seealso cref="AddStep(IPipelineStep)"/>
-		/// <seealso cref="DelegatePipelineStep.Create{TContext}(ExecutionDelegate{TContext})"/>
+		/// <seealso cref="AddStep(IPipelineExecutable)"/>
+		/// <seealso cref="DelegatePipelineExecutable.Create{TContext}(ExecutionDelegate{TContext})"/>
 		protected void AddStep(ExecutionDelegate<TContext> func)
-			=> AddStep(DelegatePipelineStep.Create(func));
+			=> AddStep(DelegatePipelineExecutable.Create(func));
 
 		/// <summary>
 		/// Adds a step to the pipeline that delegates to a function
 		/// the execution of the step.
 		/// </summary>
 		/// <param name="func"></param>
-		/// <seealso cref="AddStep(IPipelineStep)"/>
-		/// <seealso cref="DelegatePipelineStep.Create{TContext}(Func{TContext, ExecutionDelegate{TContext}, Task})"/>
+		/// <seealso cref="AddStep(IPipelineExecutable)"/>
+		/// <seealso cref="DelegatePipelineExecutable.Create{TContext}(Func{TContext, ExecutionDelegate{TContext}, Task})"/>
 		protected void AddStep(Func<TContext, ExecutionDelegate<TContext>, Task> func)
-			=> AddStep(DelegatePipelineStep.Create(func));
+			=> AddStep(DelegatePipelineExecutable.Create(func));
 
 		/// <summary>
 		/// Adds a step to the pipeline that is to be built.
@@ -106,9 +123,30 @@ namespace Deveel.Pipelines {
 		/// <param name="step">
 		/// The step to be added to the pipeline.
 		/// </param>
-		protected void AddStep(IPipelineStep step) {
+		protected void AddStep(IPipelineExecutable step) {
 			ArgumentNullException.ThrowIfNull(step, nameof(step));
 			steps.Add(step);
+		}
+
+		protected void AddBehavior(Type behaviorType, params object[] args) {
+			AddBehavior(new ServicePipelineExecutable(behaviorType, args));
+		}
+
+		protected void AddBehavior(IPipelineExecutable behavior) {
+			ArgumentNullException.ThrowIfNull(behavior, nameof(behavior));
+			behaviors.Add(behavior);
+		}
+
+		protected void AddBehavior<TBehavior>(params object[] args) where TBehavior : class {
+			AddBehavior(typeof(TBehavior), args);
+		}
+
+		protected void AddBehavior(ExecutionDelegate<TContext> behavior) {
+			AddBehavior(DelegatePipelineExecutable.Create(behavior));
+		}
+
+		protected void AddBehavior(Func<TContext, ExecutionDelegate<TContext>, Task> behavior) {
+			AddBehavior(DelegatePipelineExecutable.Create(behavior));
 		}
 
 		/// <summary>

@@ -18,10 +18,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Deveel.Pipelines {
 	/// <summary>
-	/// Describes a single step in a pipeline that
+	/// Describes a single executable element in a pipeline that
 	/// references a specific action to be executed.
 	/// </summary>
-	public sealed class ServicePipelineStep : IPipelineStep, IIdentifiedPipelineStep {
+	public sealed class ServicePipelineExecutable : IPipelineExecutable, IIdentifiedPipelineExecutable {
 		private const string HandleMethodName = "Handle";
 		private const string HandleAsyncMethodName = "HandleAsync";
 
@@ -44,7 +44,7 @@ namespace Deveel.Pipelines {
 		/// <exception cref="ArgumentNullException">
 		/// Thrown when the <paramref name="handlerType"/> is <see langword="null"/>.
 		/// </exception>
-		public ServicePipelineStep(Type handlerType, params object[]? arguments) {
+		public ServicePipelineExecutable(Type handlerType, params object[]? arguments) {
 			HandlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
 			Arguments = arguments;
 
@@ -80,7 +80,7 @@ namespace Deveel.Pipelines {
 		/// </remarks>
 		public object[]? Arguments { get; }
 
-		string IIdentifiedPipelineStep.Id => stepId;
+		string IIdentifiedPipelineExecutable.Id => stepId;
 
 		/// <summary>
 		/// Creates a node of the execution tree of the pipeline
@@ -213,10 +213,10 @@ namespace Deveel.Pipelines {
 		}
 
 		class NextHandlerWrapper<TContext> where TContext : PipelineExecutionContext {
-			private readonly ServicePipelineStep step;
+			private readonly ServicePipelineExecutable step;
 			private readonly ExecutionDelegate<TContext>? next;
 
-			public NextHandlerWrapper(ServicePipelineStep step, ExecutionDelegate<TContext>? next) {
+			public NextHandlerWrapper(ServicePipelineExecutable step, ExecutionDelegate<TContext>? next) {
 				this.step = step;
 				this.next = next;
 			}
@@ -225,7 +225,7 @@ namespace Deveel.Pipelines {
 				try {
 					return next?.Invoke(context) ?? Task.CompletedTask;
 				} finally {
-					context.NextWasInvoked((step as IIdentifiedPipelineStep).Id);
+					context.NextWasInvoked((step as IIdentifiedPipelineExecutable).Id);
 				}
 			}
 		}

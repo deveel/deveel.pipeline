@@ -14,9 +14,10 @@
 
 namespace Deveel.Pipelines {
 	/// <summary>
-	/// A step in a pipeline that is identified by a unique identifier.
+	/// An executable element in a pipeline that 
+	/// is identified by a unique identifier.
 	/// </summary>
-	interface IIdentifiedPipelineStep : IPipelineStep {
+	interface IIdentifiedPipelineExecutable : IPipelineExecutable {
 		string Id { get; }
 	}
 }

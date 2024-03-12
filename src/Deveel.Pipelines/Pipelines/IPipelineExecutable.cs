@@ -14,10 +14,10 @@
 
 namespace Deveel.Pipelines {
 	/// <summary>
-	/// Represents a step in a pipeline and that
+	/// Represents a element in a pipeline that
 	/// is providing a node in the execution graph.
 	/// </summary>
-	public interface IPipelineStep {
+	public interface IPipelineExecutable {
 		/// <summary>
 		/// Creates a new node in the execution graph
 		/// of the pipeline.

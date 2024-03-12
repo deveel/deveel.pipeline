@@ -16,8 +16,8 @@ namespace Deveel.Pipelines {
 	/// <summary>
 	/// A pipeline step that is executed by a delegate.
 	/// </summary>
-	public sealed class DelegatePipelineStep : IPipelineStep {
-		private DelegatePipelineStep(Delegate handler) {
+	public sealed class DelegatePipelineExecutable : IPipelineExecutable {
+		private DelegatePipelineExecutable(Delegate handler) {
 			Handler = handler ?? throw new ArgumentNullException(nameof(handler));
 		}
 
@@ -43,7 +43,7 @@ namespace Deveel.Pipelines {
 		}
 
 		/// <summary>
-		/// Creates a new instance of <see cref="DelegatePipelineStep"/> that
+		/// Creates a new instance of <see cref="DelegatePipelineExecutable"/> that
 		/// is executed by the given delegate.
 		/// </summary>
 		/// <typeparam name="TContext">
@@ -53,21 +53,21 @@ namespace Deveel.Pipelines {
 		/// The delegate that is used to execute the step.
 		/// </param>
 		/// <returns>
-		/// Returns a new instance of <see cref="DelegatePipelineStep"/> that
+		/// Returns a new instance of <see cref="DelegatePipelineExecutable"/> that
 		/// is executed by the given delegate.
 		/// </returns>
-		public static DelegatePipelineStep Create<TContext>(ExecutionDelegate<TContext> func) where TContext : PipelineExecutionContext
-			=> new DelegatePipelineStep(func);
+		public static DelegatePipelineExecutable Create<TContext>(ExecutionDelegate<TContext> func) where TContext : PipelineExecutionContext
+			=> new DelegatePipelineExecutable(func);
 
 		/// <summary>
-		/// Creates a new instance of <see cref="DelegatePipelineStep"/> that
+		/// Creates a new instance of <see cref="DelegatePipelineExecutable"/> that
 		/// is executed by the given delegate.
 		/// </summary>
 		/// <typeparam name="TContext"></typeparam>
 		/// <param name="func"></param>
 		/// <returns></returns>
-		public static DelegatePipelineStep Create<TContext>(Func<TContext, ExecutionDelegate<TContext>, Task> func) where TContext : PipelineExecutionContext
-			=> new DelegatePipelineStep(func);
+		public static DelegatePipelineExecutable Create<TContext>(Func<TContext, ExecutionDelegate<TContext>, Task> func) where TContext : PipelineExecutionContext
+			=> new DelegatePipelineExecutable(func);
 
 		// TODO: allow for more delegate types to be created?
 
