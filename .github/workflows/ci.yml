@@ -30,7 +30,13 @@ jobs:
         run: dotnet build -c Release --no-restore --version-suffix ${{ github.run_number }}
 
       - name: Test
-        run: dotnet test -c Release --no-build --verbosity normal
+        run: dotnet test -c Release --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+
+      - name: Upload Coverage Reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: deveel/deveel.pipeline
 
   publish:
     needs: build
